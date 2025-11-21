@@ -13,7 +13,7 @@ Base class for continuously running bots.
 
 ## Usage
 
-Implement the absract python functions in a parent class and invoke the parent class with the CLI commands (see example in Example section below). 
+Implement the abstract python functions in a child class and invoke that class with the CLI commands (see example in Example section below). 
 
 ```python
 from __init__ import BaseBot

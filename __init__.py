@@ -31,7 +31,7 @@ class BaseBot(ABC):
         self.parser.add_argument("--rig-id", help="Name of remote monitoring ID", default="", type=str)
         self.parser.add_argument("--run-every", help="Run 'update' every N seconds", default=1*60, type=int)
         self.parser.add_argument("--delay", help="Initial startup delay", default=0, type=int)
-        self.parser.add_argument("--run-less-at-night", help="Don't run during nighttime hours", default=False, type=bool)
+        self.parser.add_argument("--run-less-at-night", help="Don't run during nighttime hours", action='store_true')
         self.parser.add_argument("--run-less-at-night-start", help="Run less at night hour begin (UTC)", default=1, type=int)
         self.parser.add_argument("--run-less-at-night-end", help="Run less at night hour end (UTC)", default=11, type=int)
         known_args, unknown_args = self.parser.parse_known_args(args)
@@ -59,7 +59,7 @@ class BaseBot(ABC):
         if self.is_kill_switch_called():
             logging.error("Not executing - Kill Switch called")
             return
-        if self.is_run_less_at_node_mode():
+        if self.is_run_less_at_night_mode():
             logging.error(f"Not executing - 'Update less often in the middle of the night' mode ...  zzzz")
             return
         self.on_run_loop()
@@ -72,10 +72,10 @@ class BaseBot(ABC):
         else:
             return self.remote_config.kill_switch
 
-    def is_run_less_at_node_mode(self):
+    def is_run_less_at_night_mode(self):
         if self.run_less_at_night:
             hour = datetime.utcnow().hour  # NOTE: UTC time
-            if self.run_less_at_night_start <= hour <= self.run_less_at_night_end and hour % 4 != 0:
+            if self.run_less_at_night_start <= hour <= self.run_less_at_night_end:
                 return True
         return False
 
