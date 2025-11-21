@@ -1,17 +1,19 @@
 # jm-bot
 
-Abstract class for continuously running bots. It handles the ancillary functionality you need to have a bot that runs all the time, such as scheduling repeated execution, remote monitoring, setup/shutdown, background threading, etc 
+Base class for continuously running bots. 
 
 ## Features
 
 - **Scheduled execution** - Run tasks at specified intervals
 - **Lifecycle hooks** - Startup, shutdown, and main loop callbacks
 - **Remote monitoring** - Optional remote config and kill switch support
-- **Night mode** - Reduce execution frequency during specified hours
+- **Night mode** - Don't run during certain hours (e.g. don't run at night)
 - **Graceful shutdown** - Clean signal handling (SIGINT/SIGTERM)
 - **Thread-safe** - Async callbacks with overlap prevention
 
 ## Usage
+
+Implement the absract python functions in a parent class and invoke the parent class with the CLI commands (see example in Example section below). 
 
 ```python
 from __init__ import BaseBot
