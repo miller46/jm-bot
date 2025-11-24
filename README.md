@@ -13,14 +13,15 @@ Base class for continuously running bots.
 
 ## Usage
 
-Implement the abstract python functions in a child class and invoke that class with the CLI commands (see example in Example section below). 
+Implement the abstract python functions in a child class and invoke that class with the CLI commands (see example in Example section below).
 
 ```python
-from __init__ import BaseBot
+from base_bot import BaseBot
 import sys
 
+
 class MyBot(BaseBot):
-    
+
     def on_startup(self):
         # Initialize resources
         pass
@@ -32,6 +33,7 @@ class MyBot(BaseBot):
     def on_shutdown(self):
         # Cleanup
         pass
+
 
 if __name__ == '__main__':
     MyBot(sys.argv[1:]).main()
