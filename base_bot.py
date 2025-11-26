@@ -13,7 +13,10 @@ class BaseBot(ABC):
 
     def __init__(self, args: list, **kwargs):
         self.parser = argparse.ArgumentParser(prog='venv')
-        self.arguments = self.init_args(args)
+        self._add_base_args()
+        self.init_args(self.parser)
+
+        self.arguments = self.parser.parse_args(args)
         self.run_every = self.arguments.run_every
         self.rig_id = self.arguments.rig_id
         self.delay = self.arguments.delay
@@ -26,22 +29,20 @@ class BaseBot(ABC):
         self.success_message = None
         self.error_message = None
         self.system_message = None
+        self.logging = logging
 
     def init_args(self, args):
+        pass
+
+    def _add_base_args(self):
         self.parser.add_argument("--rig-id", help="Name of remote monitoring ID", default="", type=str)
         self.parser.add_argument("--run-every", help="Run 'update' every N seconds", default=1*60, type=int)
         self.parser.add_argument("--delay", help="Initial startup delay", default=0, type=int)
         self.parser.add_argument("--run-less-at-night", help="Don't run during nighttime hours", action='store_true')
         self.parser.add_argument("--run-less-at-night-start", help="Run less at night hour begin (UTC)", default=1, type=int)
         self.parser.add_argument("--run-less-at-night-end", help="Run less at night hour end (UTC)", default=11, type=int)
-        known_args, unknown_args = self.parser.parse_known_args(args)
-        return known_args
 
     def main(self):
-        self.remote_config = self.get_remote_config()
-        if self.remote_config is None:
-            logging.error("!!! No remote config !!!\n\nRemote monitoring is not enabled")
-
         with Lifecycle() as lifecycle:
             run_every_seconds = self.run_every
             if run_every_seconds is None:
@@ -55,7 +56,6 @@ class BaseBot(ABC):
             lifecycle.every(run_every_seconds, self._update_loop)
 
     def _update_loop(self):
-        self.remote_config = self.get_remote_config()
         if self.is_kill_switch_called():
             logging.error("Not executing - Kill Switch called")
             return
@@ -63,14 +63,7 @@ class BaseBot(ABC):
             logging.error(f"Not executing - 'Update less often in the middle of the night' mode ...  zzzz")
             return
         self.on_run_loop()
-        self.save_remote_status()
-
-    def is_kill_switch_called(self):
-        if self.remote_config is None:
-            logging.error(f"Rig config not set - no remote monitoring or remote kill switch ")
-            return False
-        else:
-            return self.remote_config.kill_switch
+        self.save_remote_status(f"Success {datetime.now()}")
 
     def is_run_less_at_night_mode(self):
         if self.run_less_at_night:
@@ -95,11 +88,16 @@ class BaseBot(ABC):
     def on_shutdown(self):
         pass
 
-    def get_remote_config(self):
-        return None
-
-    def save_remote_status(self):
+    @abstractmethod
+    def save_remote_status(self, status):
+        logging.warning(f"No remote monitoring. Remote status set ")
         pass
+
+    @abstractmethod
+    def is_kill_switch_called(self):
+        logging.warning(f"No remote kill switch ")
+        return False
+
 
 if __name__ == '__main__':
     BaseBot(sys.argv[1:]).main()
